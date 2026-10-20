@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MAMA 2026 Voting Proof</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2edff;
+      color: #30204f;
+      text-align: center;
+      margin: 0;
+      padding: 30px 16px;
+    }
+    main { max-width: 480px; margin: auto; }
+    input { display: block; margin: 24px auto; max-width: 100%; }
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      margin: 20px auto;
+      border-radius: 12px;
+    }
+    button {
+      background: #743bea;
+      color: white;
+      border: 0;
+      padding: 15px 24px;
+      border-radius: 12px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:disabled { opacity: .5; cursor: default; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>MAMA 2026 Voting Proof</h1>
+    <p>Upload your Mnet+ voting certificate to add the frame.</p>
+    <p>Your photo stays on your device.</p>
+
+    <input id="upload" type="file" accept="image/*"
+           aria-label="Upload voting proof">
+    <p id="status" role="status">Loading frame…</p>
+    <canvas id="preview" width="930" height="1410" hidden></canvas>
+    <button id="download" disabled>Download voting proof</button>
+  </main>
+
+  <script>
+    const upload = document.querySelector('#upload');
+    const canvas = document.querySelector('#preview');
+    const context = canvas.getContext('2d');
+    const download = document.querySelector('#download');
+    const status = document.querySelector('#status');
+    const overlay = new Image();
+
+    let proof = null;
+    let frameReady = false;
+    let latestUpload = 0;
+
+    function render() {
+      if (!proof || !frameReady) return;
+
+      context.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Fit the full certificate without stretching or cropping.
+      context.fillStyle = '#ffffff';
+      context.fillRect(0, 0, canvas.width, canvas.height);
+
+      const scale = Math.min(
+        canvas.width / proof.naturalWidth,
+        canvas.height / proof.naturalHeight
+      );
+      const width = proof.naturalWidth * scale;
+      const height = proof.naturalHeight * scale;
+
+      context.drawImage(
+        proof,
+        (canvas.width - width) / 2,
+        (canvas.height - height) / 2,
+        width,
+        height
+      );
+
+      context.drawImage(overlay, 0, 0, canvas.width, canvas.height);
+      canvas.hidden = false;
+      download.disabled = false;
+      status.textContent = 'Your framed voting proof is ready.';
+    }
+
+    overlay.onload = () => {
+      frameReady = true;
+      status.textContent = 'Choose your voting certificate.';
+      render();
+    };
+
+    overlay.onerror = () => {
+      status.textContent =
+        'Frame could not load. Check that overlay.png is in this folder.';
+    };
+
+    overlay.src = './overlay.png';
+
+    upload.addEventListener('change', () => {
+      const file = upload.files[0];
+      if (!file) return;
+
+      const version = ++latestUpload;
+      download.disabled = true;
+      status.textContent = 'Opening your image…';
+
+      const url = URL.createObjectURL(file);
+      const image = new Image();
+
+      image.onload = () => {
+        URL.revokeObjectURL(url);
+        if (version !== latestUpload) return;
+        proof = image;
+        render();
+        if (!frameReady) status.textContent = 'Waiting for the frame to load…';
+      };
+
+      image.onerror = () => {
+        URL.revokeObjectURL(url);
+        if (version !== latestUpload) return;
+        status.textContent = 'Could not open this image. Try a PNG or JPG.';
+      };
+
+      image.src = url;
+    });
+
+    download.addEventListener('click', () => {
+      canvas.toBlob(blob => {
+        if (!blob) {
+          status.textContent = 'Download failed. Please try again.';
+          return;
+        }
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'MAMA-2026-voting-proof.png';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+      }, 'image/png');
+    });
+  </script>
+</body>
+</html>
