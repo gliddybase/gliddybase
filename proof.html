@@ -1,152 +1,283 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>MAMA 2026 Voting Proof</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f2edff;
-      color: #30204f;
-      text-align: center;
-      margin: 0;
-      padding: 30px 16px;
-    }
-    main { max-width: 480px; margin: auto; }
-    input { display: block; margin: 24px auto; max-width: 100%; }
-    canvas {
-      display: block;
-      width: 100%;
-      height: auto;
-      margin: 20px auto;
-      border-radius: 12px;
-    }
-    button {
-      background: #743bea;
-      color: white;
-      border: 0;
-      padding: 15px 24px;
-      border-radius: 12px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    button:disabled { opacity: .5; cursor: default; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GLIDDYBASE Voting Studio</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: radial-gradient(at top left, #e5d6ff, transparent 65%), #f8f6fc;
+  color: #291743;
+  font-family: Arial, sans-serif;
+}
+header {
+  padding: 24px;
+  border-bottom: 1px solid #dfd4ee;
+  font-weight: 900;
+  letter-spacing: 2px;
+}
+main { max-width: 1000px; margin: auto; padding: 36px 20px; }
+.tag { color: #763de8; font-size: 11px; letter-spacing: 2px; font-weight: bold; }
+h1 { font-size: clamp(38px, 7vw, 64px); letter-spacing: -2px; margin: 14px 0; }
+h1 span { color: #763de8; }
+.subtitle { color: #796a88; line-height: 1.7; margin-bottom: 30px; }
+.studio { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+.card {
+  background: white;
+  padding: 26px;
+  border: 1px solid #e6ddef;
+  border-radius: 24px;
+  box-shadow: 0 12px 40px #45216b08;
+}
+h2 { font-size: 21px; margin-top: 10px; }
+.upload {
+  display: block;
+  padding: 24px 16px;
+  border: 2px dashed #cdb5f7;
+  border-radius: 16px;
+  background: #f8f3ff;
+  line-height: 1.7;
+}
+input[type=file] { display: block; width: 100%; margin-top: 15px; }
+input::file-selector-button {
+  padding: 10px;
+  background: #e8dcff;
+  color: #291743;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+hr { border: 0; border-top: 1px solid #eee7f5; margin: 26px 0; }
+label[for=username] { display: block; font-weight: bold; margin: 16px 0 10px; }
+input[type=text] {
+  width: 100%;
+  padding: 15px;
+  border: 1px solid #d8c6ec;
+  border-radius: 12px;
+  font: inherit;
+}
+input:focus-visible, button:focus-visible { outline: 3px solid #b4fa83; }
+.hint { font-size: 12px; color: #80728d; line-height: 1.6; }
+button {
+  width: 100%;
+  padding: 17px;
+  border: 0;
+  border-radius: 12px;
+  background: #763de8;
+  color: white;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 15px;
+}
+button:disabled { background: #d8cfe4; cursor: default; }
+.preview {
+  background: #f2edf8;
+  border-radius: 16px;
+  padding: 16px;
+  min-height: 300px;
+  display: grid;
+  place-items: center;
+}
+canvas { width: 100%; height: auto; display: block; }
+canvas[hidden] { display: none; }
+#empty { text-align: center; color: #8c7c9e; line-height: 1.8; }
+#status { color: #796a88; font-size: 12px; line-height: 1.6; }
+.badge {
+  display: inline-block;
+  background: #b4fa83;
+  padding: 7px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  margin-bottom: 16px;
+}
+footer { text-align: center; padding: 20px; color: #92829f; font-size: 11px; }
+@media(max-width: 700px) {
+  .studio { grid-template-columns: 1fr; }
+  .card { padding: 22px; }
+}
+</style>
 </head>
 <body>
-  <main>
-    <h1>MAMA 2026 Voting Proof</h1>
-    <p>Upload your Mnet+ voting certificate to add the frame.</p>
-    <p>Your photo stays on your device.</p>
+<header>✦ GLIDDYBASE</header>
+<main>
+  <div class="tag">MAMA 2026 · VOTING STUDIO</div>
+  <h1>Your vote.<br><span>Your signature.</span></h1>
+  <p class="subtitle">Frame your Mnet+ voting proof, add your username, and share your support.</p>
 
-    <input id="upload" type="file" accept="image/*"
-           aria-label="Upload voting proof">
-    <p id="status" role="status">Loading frame…</p>
-    <canvas id="preview" width="930" height="1410" hidden></canvas>
-    <button id="download" disabled>Download voting proof</button>
-  </main>
+  <div class="studio">
+    <section class="card">
+      <div class="tag">01 / ADD YOUR PROOF</div>
+      <h2>Start with your certificate.</h2>
+      <label class="upload" for="upload">
+        <strong>＋ Choose your voting proof</strong><br>
+        <span class="hint">Use your saved Mnet+ certificate. PNG or JPG works best.</span>
+        <input id="upload" type="file" accept="image/*">
+      </label>
 
-  <script>
-    const upload = document.querySelector('#upload');
-    const canvas = document.querySelector('#preview');
-    const context = canvas.getContext('2d');
-    const download = document.querySelector('#download');
-    const status = document.querySelector('#status');
-    const overlay = new Image();
+      <hr>
 
-    let proof = null;
-    let frameReady = false;
-    let latestUpload = 0;
+      <div class="tag">02 / MAKE IT YOURS</div>
+      <label for="username">Username (optional)</label>
+      <input id="username" type="text" maxlength="40"
+        placeholder="@yourusername" autocomplete="off" spellcheck="false">
+      <p class="hint">Your username appears on the light green bar at the bottom left.</p>
+      <button id="download" disabled>Download your proof ↓</button>
+      <p class="hint">Your images stay on your device.</p>
+    </section>
 
-    function render() {
-      if (!proof || !frameReady) return;
+    <section class="card">
+      <h2>Your preview</h2>
+      <span class="badge">930 × 1410 · PNG</span>
+      <div class="preview">
+        <p id="empty">✧<br>Your framed certificate will appear here.</p>
+        <canvas id="canvas" width="930" height="1410" hidden></canvas>
+      </div>
+      <p id="status" role="status">Loading frame…</p>
+    </section>
+  </div>
+</main>
+<footer>MADE FOR THE FANS · UNOFFICIAL FAN TOOL</footer>
 
-      context.clearRect(0, 0, canvas.width, canvas.height);
+<script>
+const upload = document.querySelector('#upload');
+const username = document.querySelector('#username');
+const canvas = document.querySelector('#canvas');
+const ctx = canvas.getContext('2d');
+const button = document.querySelector('#download');
+const status = document.querySelector('#status');
+const empty = document.querySelector('#empty');
+const frame = new Image();
 
-      // Fit the full certificate without stretching or cropping.
-      context.fillStyle = '#ffffff';
-      context.fillRect(0, 0, canvas.width, canvas.height);
+let proof = null;
+let frameState = 'loading';
+let loading = false;
+let version = 0;
 
-      const scale = Math.min(
-        canvas.width / proof.naturalWidth,
-        canvas.height / proof.naturalHeight
-      );
-      const width = proof.naturalWidth * scale;
-      const height = proof.naturalHeight * scale;
+function render() {
+  button.disabled = true;
 
-      context.drawImage(
-        proof,
-        (canvas.width - width) / 2,
-        (canvas.height - height) / 2,
-        width,
-        height
-      );
+  if (frameState === 'error') {
+    status.textContent = 'Frame could not load. Check the overlay filename and refresh.';
+    return;
+  }
+  if (frameState === 'loading') {
+    status.textContent = 'Loading frame…';
+    return;
+  }
+  if (loading) {
+    status.textContent = 'Opening your certificate…';
+    return;
+  }
+  if (!proof) {
+    status.textContent = 'Frame ready. Choose your voting proof.';
+    return;
+  }
 
-      context.drawImage(overlay, 0, 0, canvas.width, canvas.height);
-      canvas.hidden = false;
-      download.disabled = false;
-      status.textContent = 'Your framed voting proof is ready.';
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, 930, 1410);
+
+  const scale = Math.min(
+    930 / proof.naturalWidth,
+    1410 / proof.naturalHeight
+  );
+  const width = proof.naturalWidth * scale;
+  const height = proof.naturalHeight * scale;
+
+  ctx.drawImage(proof, (930-width)/2, (1410-height)/2, width, height);
+  ctx.drawImage(frame, 0, 0, 930, 1410);
+
+  const handle = username.value.trim().replace(/^@+/, '');
+
+  if (handle) {
+    ctx.save();
+    ctx.fillStyle = '#291743';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    let size = 27;
+    ctx.font = `bold ${size}px Arial`;
+
+    while (ctx.measureText('@' + handle).width > 325 && size > 10) {
+      size--;
+      ctx.font = `bold ${size}px Arial`;
     }
 
-    overlay.onload = () => {
-      frameReady = true;
-      status.textContent = 'Choose your voting certificate.';
-      render();
-    };
+    ctx.fillText('@' + handle, 286, 1320, 325);
+    ctx.restore();
+  }
 
-    overlay.onerror = () => {
-      status.textContent =
-        'Frame could not load. Check that overlay.png is in this folder.';
-    };
+  canvas.hidden = false;
+  empty.hidden = true;
+  button.disabled = false;
+  status.textContent = 'Ready! Check your username, then download.';
+}
 
-    overlay.src = './CA9187C7-0DAE-4D7E-A337-EF3655C1B8C9.png';
+frame.onload = () => {
+  frameState = 'ready';
+  render();
+};
 
-    upload.addEventListener('change', () => {
-      const file = upload.files[0];
-      if (!file) return;
+frame.onerror = () => {
+  frameState = 'error';
+  render();
+};
 
-      const version = ++latestUpload;
-      download.disabled = true;
-      status.textContent = 'Opening your image…';
+frame.src = './CA9187C7-0DAE-4D7E-A337-EF3655C1B8C9.png';
 
-      const url = URL.createObjectURL(file);
-      const image = new Image();
+username.addEventListener('input', render);
 
-      image.onload = () => {
-        URL.revokeObjectURL(url);
-        if (version !== latestUpload) return;
-        proof = image;
-        render();
-        if (!frameReady) status.textContent = 'Waiting for the frame to load…';
-      };
+upload.addEventListener('change', () => {
+  const file = upload.files[0];
+  if (!file) return;
 
-      image.onerror = () => {
-        URL.revokeObjectURL(url);
-        if (version !== latestUpload) return;
-        status.textContent = 'Could not open this image. Try a PNG or JPG.';
-      };
+  const current = ++version;
+  loading = true;
+  render();
 
-      image.src = url;
-    });
+  const url = URL.createObjectURL(file);
+  const image = new Image();
 
-    download.addEventListener('click', () => {
-      canvas.toBlob(blob => {
-        if (!blob) {
-          status.textContent = 'Download failed. Please try again.';
-          return;
-        }
+  image.onload = () => {
+    URL.revokeObjectURL(url);
+    if (current !== version) return;
+    proof = image;
+    loading = false;
+    render();
+  };
 
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'MAMA-2026-voting-proof.png';
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        setTimeout(() => URL.revokeObjectURL(url), 60000);
-      }, 'image/png');
-    });
-  </script>
+  image.onerror = () => {
+    URL.revokeObjectURL(url);
+    if (current !== version) return;
+    loading = false;
+    render();
+    status.textContent = 'Could not open this image. Try a PNG or JPG.';
+  };
+
+  image.src = url;
+});
+
+button.addEventListener('click', () => {
+  if (button.disabled) return;
+
+  canvas.toBlob(blob => {
+    if (!blob) {
+      status.textContent = 'Could not save. Please try again.';
+      return;
+    }
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'GLIDDYBASE-MAMA-2026-proof.png';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  }, 'image/png');
+});
+</script>
 </body>
 </html>
